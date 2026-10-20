@@ -3,6 +3,7 @@ node_modules/
 __pycache__/
 *.py[cod]
 *.log
+.test-output/
 
 # 运行时状态（本插件写到 ~/.dsh/state，不该进仓库）
 state/

@@ -16,6 +16,29 @@ REPO = Path(__file__).resolve().parents[1]
 QA = REPO / ".test-output" / "project-handoff"
 QA.mkdir(parents=True, exist_ok=True)
 SCRIPT = REPO / "handoff_state.py"
+
+
+def skill_dir():
+    """Locate the companion `project-handoff` skill, which ships separately.
+
+    Checkout layouts differ: the development tree keeps it in
+    `<workspace>/dsh-skills/project-handoff`, while a standalone clone of this
+    plugin repository has no skill at all. Tests that inspect the skill's docs
+    skip when it cannot be found instead of failing the plugin's CI.
+    """
+    candidates = [
+        os.environ.get("PROJECT_HANDOFF_SKILL_DIR"),
+        REPO.parents[2] / "dsh-skills" / "project-handoff",
+        Path.home() / ".dsh" / "skills" / "project-handoff",
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        path = Path(candidate)
+        if (path / "SKILL.md").is_file():
+            return path
+    return None
+
 sys.dont_write_bytecode = True
 spec = importlib.util.spec_from_file_location("reminder", SCRIPT)
 m = importlib.util.module_from_spec(spec)
@@ -594,7 +617,9 @@ class ReminderTests(unittest.TestCase):
         self.assertIn("执行前读取", self.hook("UserPromptSubmit")["hookSpecificOutput"]["additionalContext"])
 
     def test_relative_links_in_skill_docs_resolve(self):
-        skill = REPO.parents[2] / "dsh-skills" / "project-handoff"
+        skill = skill_dir()
+        if skill is None:
+            self.skipTest("companion skill not installed next to this checkout")
         docs = [skill / "SKILL.md", *sorted((skill / "references").glob("*.md"))]
         for doc in docs:
             for target in re.findall(r"\]\(([^)#\s]+)(?:#[^)]*)?\)", doc.read_text(encoding="utf-8")):
@@ -603,7 +628,10 @@ class ReminderTests(unittest.TestCase):
                 self.assertTrue((doc.parent / target).resolve().exists(), f"{doc.name} -> {target}")
 
     def test_state_template_has_markers_and_handoff_fields(self):
-        text = (REPO.parents[2] / "dsh-skills" / "project-handoff" / "assets" / "PROJECT_STATE.template.md").read_text(encoding="utf-8")
+        skill = skill_dir()
+        if skill is None:
+            self.skipTest("companion skill not installed next to this checkout")
+        text = (skill / "assets" / "PROJECT_STATE.template.md").read_text(encoding="utf-8")
         begin = re.search(r"<!-- (\S+)-HANDOFF-BEGIN (\S+) -->", text)
         self.assertIsNotNone(begin)
         self.assertIn(f"<!-- {begin.group(1)}-HANDOFF-END {begin.group(2)} -->", text)
