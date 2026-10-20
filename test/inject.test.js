@@ -114,18 +114,30 @@ test('injects once per turn and preserves the original messages', async (t) => {
   const second = await ctx.waterfall('agent/pre-step', payload, fallback)
   assert.equal(second.messages.length, 1)
 
-  // New turn: a fresh notice is allowed.
+  // New turn without a new compaction: the notice is not repeated.
   const third = await ctx.waterfall(
     'agent/pre-step',
     preStepPayload(base, 2),
     fallback,
   )
-  assert.equal(third.messages.length, 2)
-  assert.equal(store.read('s1').lastInjectedTurn, 2)
+  assert.equal(third.messages.length, 1)
+  assert.equal(store.read('s1').lastInjectedTurn, 1)
+
+  // Another compaction happened: the next turn speaks once, with the new count.
+  store.write('s1', { ...store.read('s1'), count: 3 })
+  const fourth = await ctx.waterfall(
+    'agent/pre-step',
+    preStepPayload(base, 3),
+    fallback,
+  )
+  assert.equal(fourth.messages.length, 2)
+  assert.match(fourth.messages[1].content[0].text, /已自动压缩 3 次/)
+  assert.equal(store.read('s1').lastInjectedTurn, 3)
+  assert.equal(store.read('s1').lastInjectedCount, 3)
   assert.equal(warnings.length, 0)
 })
 
-test('zero compactions still injects a short "not yet" notice', async (t) => {
+test('a session without compactions stays silent', async (t) => {
   const stateDir = tempStateDir(t)
   const { ctx } = createFakeCtx()
   const store = createStateStore({ stateDir, logger: ctx.logger })
@@ -137,7 +149,8 @@ test('zero compactions still injects a short "not yet" notice', async (t) => {
     preStepPayload(base),
     { kind: 'enter', messages: [base] },
   )
-  assert.match(result.messages[1].content[0].text, /尚未自动压缩/)
+  assert.equal(result.messages.length, 1)
+  assert.equal(fs.existsSync(store.fileFor('s1')), false)
 })
 
 test('skips when there are no messages', async (t) => {
@@ -175,6 +188,7 @@ test('appends to messages a later listener already replaced', async (t) => {
   const stateDir = tempStateDir(t)
   const { ctx } = createFakeCtx()
   const store = createStateStore({ stateDir, logger: ctx.logger })
+  store.write('s1', { count: 1 })
   installInject(ctx, { store, logger: ctx.logger })
 
   const base = baseMessage()

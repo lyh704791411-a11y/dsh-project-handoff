@@ -2,7 +2,7 @@
 
 [![checks](https://github.com/lyh704791411-a11y/dsh-project-handoff/actions/workflows/ci.yml/badge.svg)](https://github.com/lyh704791411-a11y/dsh-project-handoff/actions/workflows/ci.yml)
 
-一个给 DeepSeek Harness（DSH）用的 Host 插件：统计自动压缩次数，并在每一轮开头塞一句很短的提醒，提醒模型「该考虑整理交接材料了」。
+一个给 DeepSeek Harness（DSH）用的 Host 插件：统计自动压缩次数，并且只在新发生一次自动压缩之后，往下一轮里放一句很短的提醒，提示模型该整理交接材料了。
 
 纯 Host 实现，没有界面，没有客户端代码。
 
@@ -11,8 +11,8 @@
 ## 做什么
 
 - 监听会话事件，数一数这个会话被自动压缩过几次。
-- 每个 turn 开头注入一行提醒，例如：本会话已自动压缩 2 次。
-- 可选：检查模型的最终答复第一段有没有把这句话原样带上；没带就再补一次（默认关闭）。
+- 只在有新压缩时提醒一次，例如：本会话已自动压缩 2 次。没压缩过的会话永远不打扰。
+- 可选：检查那一次答复的第一段有没有把这句话原样带上；没带就再补一次（默认关闭）。
 
 ## 不做什么
 
@@ -79,10 +79,10 @@ dsh plugin --profile desktop remove dsh-project-handoff
 
 ## 注入与核验
 
-- 注入时机是每个 turn 的第一个步骤，一个 turn 只会注入一次。
+- 注入时机是压缩之后的那一轮，第一个步骤；一次压缩只提醒一次。
 - 注入内容是一条克隆出来的用户消息：正文换成提醒，来源标记强制改成普通用户消息。否则在多轮目标会话里会被误认成新的目标轮次，导致目标回放失败。
 - 正文上限 1000 字符。
-- 核验（可选）在 turn 结束时读模型的最后一条答复，取正文第一段（跳过空行、引用块、代码块）做包含匹配，结果写进状态文件；只有开启 steer 时才会补发一次。
+- 核验（可选）只在收到提醒的那一轮结束时有意义：读模型的最后一条答复，取正文第一段（跳过空行、引用块、代码块）做包含匹配，结果写进状态文件；只有开启 steer 时才会补发一次。
 
 ## 状态文件
 
@@ -92,10 +92,10 @@ dsh plugin --profile desktop remove dsh-project-handoff
 {
   "count": 2,
   "lastCompactionAt": "2026-10-20T02:10:33.412Z",
-  "updatedAt": "2026-10-20T02:10:33.500Z",
   "lastInjectedTurn": 7,
+  "lastInjectedCount": 2,
   "lastInjectedNotice": "project-handoff：本会话已自动压缩 2 次。",
-  "lastVerify": { "turn": 6, "match": true, "steered": false }
+  "lastVerify": { "turn": 7, "match": true, "steered": false }
 }
 ```
 

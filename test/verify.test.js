@@ -165,7 +165,12 @@ test('steer:true steers a clone once per turn', (t) => {
   ctx.emit('agent/turn-stopping', { agent, turn: 1 })
   assert.equal(steered.length, 1)
 
-  // A later turn may steer once again.
+  // A later turn may steer once again — but only when that turn received its
+  // own notice; verify never judges a silent turn.
+  ctx.emit('agent/turn-stopping', { agent, turn: 2 })
+  assert.equal(steered.length, 1)
+
+  store.write('s1', { ...store.read('s1'), lastInjectedTurn: 2 })
   ctx.emit('agent/turn-stopping', { agent, turn: 2 })
   assert.equal(steered.length, 2)
   assert.equal(store.read('s1').steeredTurn, 2)
