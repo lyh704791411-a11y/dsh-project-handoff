@@ -1,0 +1,21 @@
+NOTICE
+
+This package contains work derived from the "project-handoff" skill in
+Table-skills.
+
+Upstream: https://github.com/duoduoler-ops/Table-skills
+Upstream license: MIT (see the skill directory's LICENSE)
+Upstream author: duoduoler-ops
+
+Vendored files:
+- python/handoff_state.py — copy of upstream
+  project-handoff/scripts/compaction_reminder.py; modified only to resolve
+  the SKILL path to the DSH skill directory.
+- python/tests/test_handoff_state.py — upstream tests/test_project_handoff.py;
+  three path assertions adapted to this repository layout.
+- python/tests/test_dsh_adapter.py — DSH event-mapping cases (new).
+
+The JS plugin (index.js, lib/) is original to this package.
+
+This modified version is not endorsed by the upstream author. The upstream
+copyright and permission notice are retained as required by the MIT license.

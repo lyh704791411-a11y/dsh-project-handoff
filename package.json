@@ -1,0 +1,43 @@
+{
+  "name": "dsh-project-handoff",
+  "version": "0.1.0",
+  "description": "DSH host plugin: count automatic context compactions and inject one short project-handoff notice per turn.",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyh704791411-a11y/dsh-project-handoff.git"
+  },
+  "homepage": "https://github.com/lyh704791411-a11y/dsh-project-handoff#readme",
+  "bugs": {
+    "url": "https://github.com/lyh704791411-a11y/dsh-project-handoff/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "plugin",
+    "handoff",
+    "compaction"
+  ],
+  "files": [
+    "index.js",
+    "lib/*.js",
+    "cordis.patch.yml",
+    "python/*.py",
+    "python/tests/*.py",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# 依赖与构建产物
+node_modules/
+__pycache__/
+*.py[cod]
+*.log
+
+# 运行时状态（本插件写到 ~/.dsh/state，不该进仓库）
+state/
+.dsh-state/
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
