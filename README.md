@@ -144,7 +144,7 @@ python -m unittest discover -s tests -p "test_*.py"
 
 ## 与 project-handoff 技能的关系
 
-本插件只是计数和提醒。真正的交接流程（斜杠命令入口、保存、恢复、授权规则）来自配套技能 project-handoff，它不随本仓库分发，需要单独安装到 DSH 的技能目录。
+本插件只是计数和提醒。真正的交接流程（斜杠命令入口、保存、恢复、授权规则）来自配套技能 project-handoff，仓库在 lyh704791411-a11y/project-handoff-skill，需要单独装到 DSH 的技能目录。
 
 没装技能时插件照样工作，只是没有人消费这条提醒。
 
